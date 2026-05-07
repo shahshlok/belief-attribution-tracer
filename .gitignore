@@ -1,0 +1,41 @@
+2023-1/
+.auto-claude/
+
+# Local secrets
+.env
+.env.local
+.env.*.local
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Editor and IDE
+.vscode/
+.obsidian/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Local packages
+.local_packages/
+.venv/
+
+# Build and test artifacts
+data/*/tests/build/
+*.egg-info/
+dist/
+build/
+runs/v2/
+
+# Other caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.embedding_cache/
+node_modules/
