@@ -1,147 +1,114 @@
 # Belief Attribution TRACER Artifact
 
-This repository is the public research artifact for the paper:
+## Purpose and scope
 
-**Notional Machines, Not Just Errors: Toward Belief Attribution with Instructor-Facing LLMs**
+This repository is a public artifact for the paper **Notional Machines, Not Just Errors: Toward Belief Attribution with Instructor-Facing LLMs**. It contains all materials needed to inspect the experimental design, the frozen primary outputs, and the post-hoc analysis artifacts behind the paper results.
 
-It contains the source code, synthetic CS1 Java submissions, raw LLM detection outputs, final analysis artifacts, figures, and documentation needed to inspect and rerun the TRACER evidence reported in the paper.
+The artifact is intentionally narrow: it documents a controlled benchmark for belief-attribution behavior, not a production system or classroom deployment.
 
-TRACER, **Taxonomic Research of Aligned Cognitive Error Recognition**, is a controlled research framework for evaluating whether large language models can generate plausible hypotheses about student notional-machine misconceptions from source code. The artifact is designed for reviewer and researcher inspection. It is not a classroom deployment system, grading tool, or student-facing diagnostic service.
+The two core research questions represented in the artifacts are:
 
-## Research Purpose
+- Can LLM outputs be used to hypothesize **what misconception a student may hold**, not just where code is wrong?
+- How does model behavior differ when misconception category text is hidden during matching versus shown?
 
-The paper argues for an instructor-facing framing of LLM support in CS1. Rather than asking only whether a model can identify or repair a bug, TRACER asks whether a model can generate evidence-grounded hypotheses about the mental model that may have produced a student submission.
+## What this repository contains
 
-The central distinction is:
-
-- Bug detection asks what is wrong with the program.
-- Belief attribution asks what notional-machine belief may explain the program.
-- Diagnostic humility requires treating such outputs as hypotheses, with abstention and specificity prioritized over broad coverage.
-
-## Artifact Contents
-
-| Path | Description |
+| Path | Purpose |
 | --- | --- |
-| `authentic_seeded/` | Synthetic Java submissions and manifests for A1-A3. |
-| `detections/` | Frozen raw LLM detection outputs used by the paper analysis. |
-| `runs/run_final_main/` | Final label-exclusive publication analysis artifacts. |
-| `runs/run_final_ablation/` | Final label-inclusive ablation artifacts. |
-| `figures/` | Paper-facing figure exports. |
-| `data/` | Assignment prompts, rubrics, tests, and notional-machine ground truth. |
-| `analyze.py` | Publication analysis, semantic matching, threshold calibration, and 5-fold cross-validation. |
-| `miscons.py` | LLM detection runner for regenerating model outputs. |
-| `docs/` | Methodology, matching, metrics, prompts, architecture, and development notes. |
+| `authentic_seeded/` | Synthetic CS1 Java submissions and manifests for A1–A3 |
+| `detections/` | Frozen LLM detection outputs used by all paper analyses |
+| `runs/run_final_main/` | Frozen publication artifact for the label-exclusive condition |
+| `runs/run_final_ablation/` | Frozen publication artifact for the ablation (label-inclusive matching) |
+| `data/` | Assignment prompts, rubrics, tests, and ground-truth files |
+| `docs/` | Methodology, matching logic, metric interpretation, and technical notes |
+| `analyze.py` | Cross-validation and analysis pipeline |
+| `miscons.py` | Detection generation orchestrator |
 
-## Headline Results
+## Reproducibility ladder
 
-The checked-in final runs reproduce the metrics reported in the paper.
+Use this in ascending cost order:
 
-Main condition: label-exclusive matching
+1. **Inspect frozen results (no API keys needed)**
+   - Read `runs/run_final_main/` and `runs/run_final_ablation/` summaries.
+2. **Re-run analysis from existing detections (requires OpenAI embeddings key)**
+   - Recompute report artifacts from frozen detection JSONs.
+3. **Re-run detections (requires provider keys and substantial API budget)**
+   - Regenerate raw LLM outputs from the seeded submissions.
 
-| Metric | Value |
-| --- | ---: |
-| Precision | 0.577 |
-| Recall | 0.872 |
-| Specificity | 0.848 |
+## Repository map for first-time reviewers
 
-Ablation: label-inclusive matching
+1. Start with **`docs/methodology.md`** to understand the 5-fold split, calibration policy, and why this is a controlled benchmark.
+2. Read **`docs/matching.md`** for semantic matching and why label leakage mattered for the ablation.
+3. Read **`docs/metrics-guide.md`** for precision/recall/specificity interpretation in this setting.
+4. Validate claims quickly using **`ARTIFACT.md`** and **`RUNS`** metrics files.
+5. If you want reproducibility commands, use **`REPRODUCIBILITY.md`**.
 
-| Metric | Value |
-| --- | ---: |
-| Precision | 0.511 |
-| Recall | 0.982 |
-| Specificity | 0.774 |
+## What the final numbers mean
 
-The label-inclusive ablation increases recall while reducing specificity, illustrating how evaluation shortcuts can inflate apparent capability while worsening the safety-relevant false-positive profile.
+The artifact includes two publication conditions:
 
-## Dataset and Evaluation Scope
+- `run_final_main` (label-exclusive):
+  - Precision `0.577`
+  - Recall `0.872`
+  - Specificity `0.848`
+- `run_final_ablation` (label-inclusive):
+  - Precision `0.511`
+  - Recall `0.982`
+  - Specificity `0.774`
 
-- 1,200 synthetic CS1 Java submissions.
-- 300 synthetic students across three assignments.
-- Four submissions per synthetic student.
-- One misconception-seeded submission and three behaviorally correct submissions per synthetic student.
-- 18 notional-machine misconception categories.
-- Four prompting strategies.
-- Six model configurations across GPT, Claude, and Gemini families.
-- 5-fold stratified cross-validation with threshold calibration on development folds and evaluation on held-out folds.
+The difference is not “better or worse in every dimension”; it is an explicit precision-recall tradeoff where exposing misconception text increases sensitivity and raises false-positive risk.
 
-The dataset is synthetic by design. This enables controlled ground-truth evaluation of injected misconceptions, but it does not establish ecological validity for authentic classroom submissions.
+## Data and evidence boundaries
 
-## Quick Start
+- The benchmark is synthetic, with controlled generation of misconception-seeded and clean submissions.
+- The artifact is suitable for replication of analysis and interpretation, but not for claiming ecological validity to real student populations.
+- The repository does not claim to recover ground-truth student belief, and it should not be interpreted as a grading-grade diagnostic system.
 
-Install dependencies:
+## Quickstart commands
 
 ```bash
 uv sync
-```
 
-Inspect final results without API keys:
-
-```bash
+# No-key checks (frozen outputs)
 cat runs/run_final_main/metrics.json
 cat runs/run_final_ablation/metrics.json
-```
 
-Rerun the main publication analysis from the frozen detection outputs:
-
-```bash
+# Rerun main and ablation from frozen detections
 export OPENAI_API_KEY="sk-..."
-
-uv run python analyze.py analyze-publication \
-  --run-name reviewer_main \
-  --include-label-text false
+uv run python analyze.py analyze-publication --run-name reviewer_main --include-label-text false
+uv run python analyze.py analyze-publication --run-name reviewer_ablation --include-label-text true
 ```
 
-Rerun the label-inclusive ablation:
+Reproduced outputs are written under `runs/v2/`.
 
-```bash
-uv run python analyze.py analyze-publication \
-  --run-name reviewer_ablation \
-  --include-label-text true
-```
-
-New analysis outputs are written to `runs/v2/`.
-
-## Regenerating Raw Detections
-
-The repository includes the frozen detection outputs used for the paper. Regenerating them is optional and more expensive because it calls external model providers.
-
-To regenerate detections, configure provider keys:
+Optional regeneration path (full-cost):
 
 ```bash
 export OPENAI_API_KEY="sk-..."
 export ANTHROPIC_API_KEY="sk-ant-..."
 export GOOGLE_API_KEY="..."
-```
 
-Then run:
-
-```bash
 uv run python miscons.py all-strategies --assignment a1
 uv run python miscons.py all-strategies --assignment a2
 uv run python miscons.py all-strategies --assignment a3
 ```
 
-Model names and provider availability may change over time. For verifying the submitted paper results, the checked-in `detections/` directory is the authoritative frozen raw-output layer.
+## Documentation package
 
-## Documentation Map
+In addition to this README, use:
 
-- `ARTIFACT.md` - concise artifact guide and rerun levels.
-- `REPRODUCIBILITY.md` - step-by-step reproduction instructions.
-- `DATA_PROVENANCE.md` - provenance of the synthetic submissions and detection outputs.
-- `docs/methodology.md` - cross-validation and threshold calibration.
-- `docs/matching.md` - semantic matching and label-exclusive versus label-inclusive comparison.
-- `docs/metrics-guide.md` - precision, recall, specificity, and false-positive interpretation.
-- `docs/notional-machines.md` - misconception taxonomy.
-- `docs/context.md` - paper framing and reporting guidance.
+- `docs/architecture.md`
+- `docs/analysis-pipeline.md`
+- `docs/notional-machines.md`
+- `docs/matching.md`
+- `docs/cli-reference.md`
+- `ARTIFACT.md`
+- `REPRODUCIBILITY.md`
+- `DATA_PROVENANCE.md`
 
-## Claim Boundaries
+## Citation and reuse
 
-This artifact supports inspection of a controlled benchmark for instructor-facing belief attribution. It does not claim to recover students' true beliefs, support grading, validate student-facing authoritative diagnosis, or demonstrate classroom deployment readiness.
-
-## Citation
-
-If you use this artifact, please cite the paper and this repository. A machine-readable citation file is provided in `CITATION.cff`.
+If you reuse this artifact, cite the repository with the provided `CITATION.cff` and make sure to carry forward the claim boundaries above when summarizing results.
 
 ```bibtex
 @software{shah2026tracer,
@@ -152,3 +119,6 @@ If you use this artifact, please cite the paper and this repository. A machine-r
 }
 ```
 
+## For reviewers and re-runners
+
+See [docs/reviewer-onboarding.md](docs/reviewer-onboarding.md) for a full non-code walkthrough from study question to final metric interpretation.

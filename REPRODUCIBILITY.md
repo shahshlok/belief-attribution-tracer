@@ -1,72 +1,66 @@
 # Reproducibility Instructions
 
-This document describes the expected reproduction path for the TRACER belief-attribution artifact.
+This document gives a deterministic verification path for external reviewers.
 
-## Environment
+## Scope of reproducibility
 
-The project uses Python and `uv`.
+The artifact supports three reproducibility levels.
 
-```bash
-uv sync
-```
+### Level A — Artifact inspection (no keys)
 
-The final result files can be inspected without API keys. Rerunning semantic matching requires `OPENAI_API_KEY` because the analysis embeds model outputs and ground-truth misconception descriptions. Regenerating detections also requires provider keys for OpenAI, Anthropic, and Google.
+Purpose: Verify that the public artifact contains all publication-level artifacts.
 
-## Verify Checked-In Results
-
-The final paper-facing metrics are checked in:
+Commands:
 
 ```bash
 cat runs/run_final_main/metrics.json
 cat runs/run_final_ablation/metrics.json
 ```
 
-Expected main-run values:
+Expected values for quick checks:
 
-- Precision: `0.577`
-- Recall: `0.872`
-- Specificity: `0.848`
+- `run_final_main`: precision `0.577`, recall `0.872`, specificity `0.848`
+- `run_final_ablation`: precision `0.511`, recall `0.982`, specificity `0.774`
 
-Expected label-inclusive ablation values:
+### Level B — Deterministic reanalysis from frozen detections
 
-- Precision: `0.511`
-- Recall: `0.982`
-- Specificity: `0.774`
+Purpose: Recompute reports from existing frozen detection JSONs.
 
-## Rerun Analysis from Frozen Detections
+Requirements:
 
-Set the embedding key:
+- `uv`
+- `OPENAI_API_KEY` (for embeddings used in semantic matching)
+
+Commands:
 
 ```bash
+uv sync
 export OPENAI_API_KEY="sk-..."
-```
 
-Run the main condition:
-
-```bash
 uv run python analyze.py analyze-publication \
   --run-name reviewer_main \
   --include-label-text false
-```
 
-Run the ablation:
-
-```bash
 uv run python analyze.py analyze-publication \
   --run-name reviewer_ablation \
   --include-label-text true
 ```
 
-The outputs are written to:
+Outputs:
 
 - `runs/v2/run_reviewer_main/`
 - `runs/v2/run_reviewer_ablation/`
 
-Because embedding providers can change over time, exact numerical equality is not guaranteed indefinitely. The checked-in `runs/run_final_main/` and `runs/run_final_ablation/` directories are the frozen paper artifacts.
+### Level C — Full regeneration (optional and cost-sensitive)
 
-## Regenerate Raw Detections
+Purpose: Reproduce raw detections from scratch.
 
-This step is optional. It is slower, more expensive, and depends on current external model availability.
+Requirements:
+
+- API keys for OpenAI, Anthropic, Google
+- Runtime and rate-limit budget suitable for full LLM submission grid
+
+Commands:
 
 ```bash
 export OPENAI_API_KEY="sk-..."
@@ -78,15 +72,25 @@ uv run python miscons.py all-strategies --assignment a2
 uv run python miscons.py all-strategies --assignment a3
 ```
 
-Detection outputs are written under:
+This command path is for completeness and should not be treated as the default reproducibility target, since provider versions and outputs drift over time.
 
-- `detections/a1_multi/`
-- `detections/a2_multi/`
-- `detections/a3_multi/`
+## Environment setup
 
-## Interpretation
+```bash
+uv sync
+```
 
-The primary analysis is label-exclusive. It compares the model's generated student-thinking hypothesis to the ground-truth misconception description without exposing the misconception label text. The label-inclusive condition is an ablation intended to show how evaluation shortcuts can inflate recall while degrading specificity.
+## Interpretation policy
 
-Specificity and false positives are central to the artifact because belief attribution is risk-asymmetric: falsely diagnosing a misconception can be more harmful than abstaining.
+The principal artifact for paper claims is `runs/run_final_main/` (label-exclusive) and `runs/run_final_ablation/` (label-inclusive comparison). Use the ablation only to evaluate robustness of the interpretation, not as a replacement primary claim.
 
+Specificity and false-positive control are primary interpretation points in this benchmark because false positive errors are more harmful than misses in the instructor-facing setting this work studies.
+
+## Failure checks
+
+If outputs are missing:
+
+- confirm the working directory is this artifact repository,
+- confirm `runs/run_final_main/` and `runs/run_final_ablation/` are present,
+- confirm dependency install with `uv sync`,
+- ensure `OPENAI_API_KEY` is set before Level B reruns.

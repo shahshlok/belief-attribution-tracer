@@ -1,19 +1,100 @@
 # Artifact Guide
 
-This repository is a reviewer-facing artifact for the belief-attribution paper. It is intended to let a researcher inspect the data generation setup, raw model outputs, final metrics, and analysis code without needing access to the original working repository.
+This repository is the reviewer-facing research artifact for the TRACER belief-attribution study.
 
-## What Is Included
+## Purpose of this artifact
 
-| Path | Purpose |
+The artifact is designed so a reviewer can:
+
+- Verify the exact evidence that supported the paper claims.
+- Understand the full processing flow without reading implementation details first.
+- Rerun analysis from frozen outputs.
+- Optionally regenerate model detections under the same experimental structure.
+
+The artifact is intentionally *not* a deployment package and does not claim classroom use.
+
+## Included components
+
+| Path | What it contributes |
 | --- | --- |
-| `authentic_seeded/` | Synthetic Java submissions and manifests for A1-A3. |
-| `detections/` | Raw LLM outputs, grouped by assignment and prompting strategy. |
-| `runs/run_final_main/` | Final label-exclusive analysis used for the main paper result. |
-| `runs/run_final_ablation/` | Final label-inclusive ablation analysis. |
-| `data/` | Assignments, rubrics, tests, and misconception ground truth. |
-| `docs/` | Methodology and implementation documentation. |
-| `analyze.py` | Cross-validation, semantic matching, metrics, and plotting pipeline. |
-| `miscons.py` | Detection runner for regenerating model outputs. |
+| `authentic_seeded/` | Synthetic submission set with one seeded misconception plus clean control submissions per synthetic student. |
+| `data/` | Ground-truth misconception definitions, assignment prompts, rubrics, and tests. |
+| `detections/` | Raw LLM detection JSONs used by the analysis pipeline. |
+| `runs/run_final_main/` | Frozen main analysis for the label-exclusive condition. |
+| `runs/run_final_ablation/` | Frozen ablation analysis for the label-inclusive condition. |
+| `docs/` | Method write-ups on methodology, matching, prompts, and metric interpretation. |
+| `analyze.py` | Publication analysis pipeline (cross-validation, matching, scoring, bootstrapped summaries). |
+| `miscons.py` | Detection orchestration for model runs over all configurations. |
+
+## Primary interpretive split
+
+The artifact distinguishes two publication conditions:
+
+- `run_final_main`: label-exclusive matching (recommended primary condition).
+- `run_final_ablation`: label-inclusive matching (explicit ablation).
+
+The main recommendation is to interpret paper claims using the label-exclusive condition and treat the ablation as a cautionary comparison showing recall-specificity tradeoffs.
+
+## Artifact verification sequence
+
+1. Read high-level claims and framing in:
+   - `README.md`
+   - `docs/context.md`
+   - `docs/methodology.md`
+2. Inspect frozen outputs in:
+   - `runs/run_final_main/metrics.json`
+   - `runs/run_final_main/fold_results.csv`
+   - `runs/run_final_ablation/metrics.json`
+   - `runs/run_final_ablation/fold_results.csv`
+3. Reproduce analysis from frozen detections (API-key-assisted) via:
+   - `analyze.py analyze-publication`
+4. Optionally regenerate detections with `miscons.py`.
+
+## Reproducibility and rerun policy
+
+No external API calls are needed to validate the final published values; they are present in `runs/`.
+
+Re-creating those values from frozen detections is allowed and controlled through a stable command path.
+
+Re-generating raw detections is intentionally optional because it depends on current provider availability and versioning.
+
+## Evidence boundaries
+
+- Synthetic data and frozen outputs are authoritative for artifact-level replication.
+- Exact equality of reruns with regenerated detections is not guaranteed over time due to model API drift.
+- The results are synthetic and do not assert actual student belief states.
+
+## Key metrics reported
+
+Main run:
+
+- Precision: `0.577`
+- Recall: `0.872`
+- Specificity: `0.848`
+
+Ablation:
+
+- Precision: `0.511`
+- Recall: `0.982`
+- Specificity: `0.774`
+
+## Related documentation
+
+- `REPRODUCIBILITY.md` for command-level rerun instructions.
+- `DATA_PROVENANCE.md` for source and restoration constraints.
+- `docs/analysis-pipeline.md` for end-to-end processing sequence.
+- `docs/matching.md` for semantic matching and threshold choices.
+- `docs/metrics-guide.md` for interpretation guardrails.
+- `docs/cli-reference.md` for available entry points.
+
+## Claim boundaries
+
+The artifact supports controlled-method inspection in a synthetic benchmark.
+It does not claim:
+
+- that the model recovers true student cognition from real classes,
+- student-facing diagnosis quality,
+- or direct classroom deployment readiness.
 
 ## Frozen Results
 
