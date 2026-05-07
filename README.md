@@ -97,6 +97,8 @@ uv run python miscons.py all-strategies --assignment a3
 
 In addition to this README, use:
 
+- `docs/overview-index.md`
+- `docs/claim-to-artifact-map.md`
 - `docs/architecture.md`
 - `docs/analysis-pipeline.md`
 - `docs/notional-machines.md`
@@ -121,4 +123,4 @@ If you reuse this artifact, cite the repository with the provided `CITATION.cff`
 
 ## For reviewers and re-runners
 
-See [docs/reviewer-onboarding.md](docs/reviewer-onboarding.md) for a full non-code walkthrough from study question to final metric interpretation.
+See [docs/reviewer-onboarding.md](docs/reviewer-onboarding.md), [docs/overview-index.md](docs/overview-index.md), and [docs/claim-to-artifact-map.md](docs/claim-to-artifact-map.md) for a full non-code walkthrough from study question to final metric interpretation.

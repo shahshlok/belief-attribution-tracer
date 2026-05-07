@@ -33,6 +33,8 @@ For each file:
 - report markdown includes strategy/model/assignment summaries used in interpretation.
 - run-level figures (if present) provide visual cross-checks.
 
+If you want a direct claim mapping, continue to [docs/claim-to-artifact-map.md](claim-to-artifact-map.md).
+
 ## 4) Reproduce with minimal external dependencies
 
 Reproduce frozen-output analysis with:
